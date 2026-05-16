@@ -21,7 +21,7 @@ steps:
     PYTHONPATH: $(System.DefaultWorkingDirectory)
 
 - script: |
-    bandit -r app -f txt -o bandit-report.txt
+    bandit -r app -lll -f txt -o bandit-report.txt
   displayName: 'Run Bandit SAST scan'
 
 - task: PublishBuildArtifacts@1
