@@ -15,8 +15,10 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |
-    pytest
+    python -m pytest
   displayName: 'Run tests'
+  env:
+    PYTHONPATH: $(System.DefaultWorkingDirectory)
 
 - script: |
     bandit -r app -f txt -o bandit-report.txt
