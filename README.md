@@ -54,17 +54,11 @@ https://bandit.readthedocs.io/
 
 # Application Description
 
-The application contains a Python function that executes a system ping command using the subprocess module.
+The application created for this project is a small Python utility that executes a network ping command against a specified host.
 
-Initial implementation:
+Its purpose is not to provide a complete networking tool, but to simulate a realistic scenario where a developer uses operating system commands inside an application.
 
-```python
-command = "ping -c 1 " + host
-return subprocess.check_output(command, shell=True)
-
-## How the Application Works
-
-The application contains a function called `ping_host()` which executes a system ping command against a provided host.
+The application contains a function named `ping_host()` which receives a hostname or IP address as input and executes the Linux `ping` command using Python's `subprocess` module.
 
 Example:
 
@@ -73,3 +67,52 @@ from app.vulnerable_app import ping_host
 
 response = ping_host("google.com")
 print(response)
+```
+
+When executed on Linux, the function runs a command similar to:
+
+```bash
+ping -c 1 google.com
+```
+
+The initial implementation intentionally used an insecure subprocess configuration in order to demonstrate how SAST tools identify security vulnerabilities during automated CI/CD execution.
+
+The vulnerable implementation was:
+
+```python
+import subprocess
+
+def ping_host(host):
+    command = "ping -c 1 " + host
+    return subprocess.check_output(command, shell=True)
+```
+
+The issue with this implementation is the use of:
+
+```python
+shell=True
+```
+
+When shell execution is enabled, user input may be interpreted directly by the operating system shell. This creates the possibility of command injection attacks.
+
+For example, an attacker could attempt to inject additional commands such as:
+
+```text
+google.com && malicious_command
+```
+
+This type of vulnerability is classified as:
+- CWE-78: OS Command Injection
+
+Bandit successfully identified this issue during the security scanning stage of the Azure DevOps pipeline.
+
+After the vulnerability was detected, the application was remediated using a safer subprocess implementation:
+
+```python
+import subprocess
+
+def ping_host(host):
+    return subprocess.check_output(["ping", "-c", "1", host])
+```
+
+The remediated version removes shell interpretation and safely passes command arguments directly to the operating system.
